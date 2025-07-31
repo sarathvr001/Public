@@ -1,0 +1,251 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #181b1f;
+    color: #f7f7fa;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body,
+.main-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-wrapper {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: flex-end; */
+    max-width: none;
+    margin: 0 auto;
+    padding: 30px 12px 80px 12px;
+    overflow-y: auto;
+    min-height: 400px;
+    width: -webkit-fill-available;
+    padding-left: 20%;
+    padding-right: 20%;
+}
+
+.chat-bubble {
+    max-width: 99%;
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    box-shadow: 0 1px 12px #0003;
+    word-break: break-word;
+    position: relative;
+    white-space: pre-line;
+    animation: fadein 0.2s;
+}
+
+.user {
+    background: #2987f5;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.bot {
+    background: #24262b;
+    color: #abe6ff;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.input-area {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #202329e8;
+    box-shadow: 0 -1px 8px #0002;
+    padding: 18px 0 14px 0;
+    display: flex;
+    justify-content: center;
+
+    bottom: unset;
+    left: unset;
+    right: unset;
+    background: #23262d;
+    padding: 17px 0 14px 0;
+    box-shadow: 0 -2px 16px #0002;
+    display: flex;
+    justify-content: center;
+    z-index: 2;
+}
+
+.input-bar {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    gap: 10px;
+}
+
+.input-bar textarea {
+    flex: 1;
+    resize: none;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: none;
+    background: #23262d;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    min-height: 24px;
+    max-height: 100px;
+    box-sizing: border-box;
+    line-height: 1.4;
+}
+
+.input-bar button {
+    background: linear-gradient(90deg, #2987f5, #5cc2f6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-size: 1.09rem;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 2px 12px #0002;
+    transition: background .15s;
+}
+
+.input-bar button:active {
+    background: #2578de;
+}
+
+.header {
+    width: 100%;
+    text-align: center;
+    padding: 18px 0 8px 0;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #abe6ff;
+    background: #15181d;
+    border-bottom: 1.5px solid #292c31;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 2px 6px #0001;
+}
+
+.subtitle {
+    color: #7da9cc;
+    font-size: 0.99rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.loader {
+    display: inline-block;
+    width: 1.3em;
+    height: 1.3em;
+    border: 3px solid #54d6ff55;
+    border-top: 3px solid #54d6ff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.chat-bubble.bot.waiting:after {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+    width: 1.15em;
+    height: 1.15em;
+    border: 2.5px solid #fff2;
+    border-top: 2.5px solid #abe6ff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: #5cc2f6;
+    font-size: 0.97rem;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 8px;
+}
+
+.model-bar {
+    margin: 0 auto 14px auto;
+    max-width: 700px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: #abe6ff;
+    justify-content: flex-end;
+}
+
+.model-bar label {
+    font-weight: 500;
+}
+
+.model-bar input {
+    background: #22252a;
+    color: #fff;
+    border-radius: 7px;
+    border: none;
+    padding: 3.5px 10px;
+    font-size: 1rem;
+    width: 110px;
+}
+
+@media (max-width: 768px) {
+
+    .chat-container,
+    .input-bar,
+    .model-bar {
+        max-width: 99vw;
+    }
+
+    .input-bar textarea {
+        font-size: 1rem;
+    }
+}

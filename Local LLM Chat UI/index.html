@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ollama Chat - GPT Style UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./microphne.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <div class="header">Ollama Chat <span style="font-size:0.83em;font-weight:400;">(local LLM)</span></div>
+        <div class="subtitle">A local, private ChatGPT-like UI for Ollama. All data stays on your device.</div>
+        <div class="model-bar">
+            <label for="modelInput">Model:</label>
+            <input id="modelInput" value="llama3.2:latest" />
+            <button class="clear-btn" id="clearBtn" title="Clear chat">Clear Chat</button>
+        </div>
+        <div class="chat-container container" id="chat"></div>
+        <form class="input-area" id="chatForm" autocomplete="off">
+            <div class="input-bar">
+                <textarea id="promptInput" rows="1" placeholder="Type a message..." autofocus></textarea>
+                <button type="button" id="micBtn" title="Speak"><span id="micIcon">🎤</span></button>
+                <button type="submit" id="sendBtn">Send</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="./main.js"></script>
+    <script src="./microphone.js"></script>
+</body>
+
+</html>

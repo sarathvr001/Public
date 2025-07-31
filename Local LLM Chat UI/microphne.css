@@ -1,0 +1,14 @@
+#micBtn {
+  background: #23262d;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.3em;
+  color: #66d5f6;
+  cursor: pointer;
+  padding: 0 14px;
+  transition: background 0.15s;
+}
+#micBtn.active, #micBtn:active {
+  background: #2176f3;
+  color: #fff;
+}
