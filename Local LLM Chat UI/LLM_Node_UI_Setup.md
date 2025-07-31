@@ -3,6 +3,14 @@
 This guide explains how I set up a **local LLM environment** using **Ollama**, created a **Node.js server** to expose the model through an API, and built a **custom HTML/CSS/JavaScript UI** as a chat interface.
 
 ---
+## ✅ 0. How to run the code
+
+1. Prerequisites: local Ollama3.2 LLM Model, Node.js, VS Code (Optional)
+2. Open the index.html in web browser.
+3. Run the server.js file with node (do npm 'npm start' in the 'Local LLM Chat UI' folder).
+4. Run llama3.2 model with ollama. 
+
+
 
 ## ✅ 1. Overview of the Architecture
 
