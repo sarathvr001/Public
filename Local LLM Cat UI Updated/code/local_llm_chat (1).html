@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local LLM Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    header {
+      background: #0d6efd;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .main-container {
+      display: flex;
+      height: calc(100vh - 80px);
+      max-width: 1200px;
+      margin: 20px auto;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .history-panel {
+      width: 280px;
+      background: #f1f3f5;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .history-item {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .history-item strong {
+      display: block;
+      font-size: 0.95rem;
+    }
+    .create-new {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #0d6efd;
+      border: 2px dashed #0d6efd;
+      background: transparent;
+      border-radius: 5px;
+      padding: 10px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 80%;
+    }
+    .message-wrapper.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .message {
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      max-width: 100%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .message.user {
+      background: #0d6efd;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+    .message.bot {
+      background: #e9ecef;
+      color: #212529;
+      border-bottom-left-radius: 0;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .chat-input {
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .chat-input textarea {
+      resize: none;
+      height: 50px;
+    }
+    .form-control:focus, .btn:focus, textarea:focus {
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    Local LLM Chat
+  </header>
+
+  <div class="main-container">
+    <div class="history-panel">
+      <div class="create-new" id="createNew">+ New Chat</div>
+      <div class="history-list" id="historyList">
+        <!-- Dummy sessions -->
+      </div>
+    </div>
+    <div class="chat-section">
+      <div id="chatMessages" class="chat-messages">
+        <div class="message-wrapper user">
+          <img src="https://via.placeholder.com/40" alt="User" class="avatar">
+          <div class="message user">Hi there! How are you?</div>
+        </div>
+        <div class="message-wrapper bot">
+          <img src="https://via.placeholder.com/40/0d6efd/ffffff?text=AI" alt="Bot" class="avatar">
+          <div class="message bot">Hello! I'm doing great, thank you. How can I help you today?</div>
+        </div>
+        <div class="message-wrapper user">
+          <img src="https://via.placeholder.com/40" alt="User" class="avatar">
+          <div class="message user">Can you tell me about Large Language Models?</div>
+        </div>
+        <div class="message-wrapper bot">
+          <img src="https://via.placeholder.com/40/0d6efd/ffffff?text=AI" alt="Bot" class="avatar">
+          <div class="message bot">Sure! Large Language Models (LLMs) are AI systems trained on vast amounts of text data to understand and generate human-like language.</div>
+        </div>
+      </div>
+      <div class="chat-input">
+        <textarea id="userInput" class="form-control" placeholder="Type your message..."></textarea>
+        <button id="sendBtn" class="btn btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById('sendBtn');
+    const userInput = document.getElementById('userInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const historyList = document.getElementById('historyList');
+    const createNew = document.getElementById('createNew');
+
+    let sessionId = Date.now();
+    let sessions = {};
+
+    // Add dummy sessions
+    const dummySessions = [
+      { id: 1, title: 'Chat about AI', date: '2025-08-01 21:15' },
+      { id: 2, title: 'Project Discussion', date: '2025-07-31 19:45' },
+      { id: 3, title: 'General Questions', date: '2025-07-30 14:10' }
+    ];
+
+    function renderSessions() {
+      historyList.innerHTML = '';
+      dummySessions.sort((a,b) => b.id - a.id);
+      dummySessions.forEach(s => {
+        const div = document.createElement('div');
+        div.classList.add('history-item');
+        div.innerHTML = `<strong>${s.title}</strong><small>${s.date}</small>`;
+        div.onclick = () => alert('Load session ' + s.title);
+        historyList.appendChild(div);
+      });
+    }
+
+    renderSessions();
+
+    createNew.addEventListener('click', () => {
+      alert('Create a new chat session');
+    });
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      userInput.value = '';
+
+      try {
+        const response = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: message })
+        });
+
+        const data = await response.json();
+        addMessage(data.response || 'No response from model.', 'bot');
+      } catch (error) {
+        addMessage('Error connecting to LLM server.', 'bot');
+      }
+    }
+
+    function addMessage(text, sender) {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('message-wrapper', sender);
+      const avatar = document.createElement('img');
+      avatar.classList.add('avatar');
+      avatar.src = sender === 'user' ? 'https://via.placeholder.com/40' : 'https://via.placeholder.com/40/0d6efd/ffffff?text=AI';
+      const msg = document.createElement('div');
+      msg.classList.add('message', sender);
+      msg.innerText = text;
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(msg);
+      chatMessages.appendChild(wrapper);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

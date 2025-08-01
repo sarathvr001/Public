@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local LLM Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { background: #FC5C7D; background: -webkit-linear-gradient(to right, #6A82FB, #FC5C7D); background: linear-gradient(to right, #6A82FB, #FC5C7D); min-height: 100vh; }
+    header { background: rgba(255, 255, 255, 0.2); color: white; padding: 15px; text-align: center; font-size: 1.5rem; font-weight: bold; backdrop-filter: blur(8px); }
+    .main-container { display: flex; height: calc(100vh - 80px); max-width: 1200px; margin: 20px auto; background: rgba(255, 255, 255, 0.9); border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); backdrop-filter: blur(6px); }
+    .history-panel, .chat-section { background: linear-gradient(135deg, rgba(106,130,251,0.15), rgba(252,92,125,0.15)); }
+    .history-panel { width: 280px; border-right: 1px solid #ddd; display: flex; flex-direction: column; padding: 10px; transition: all 0.3s ease; }
+    .history-panel.hidden { width: 0; padding: 0; overflow: hidden; }
+    .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .history-item, .create-new { display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); transition: transform 0.2s ease, box-shadow 0.2s ease; background: #800080; background: -webkit-linear-gradient(to right, #ffc0cb, #800080); background: linear-gradient(to right, #ffc0cb, #800080); color: #fff; }
+    .history-item:hover, .create-new:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); }
+    .history-item i, .create-new i { font-size: 1.2rem; color: #fff; }
+    .create-new { border: 2px dashed #fff; justify-content: center; background: transparent; background: #800080; background: -webkit-linear-gradient(to right, #ffc0cb, #800080); background: linear-gradient(to right, #ffc0cb, #800080); }
+    .chat-section { flex: 1; display: flex; flex-direction: column; }
+    .chat-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #ddd; background: rgba(248,249,250,0.9); font-weight: bold; }
+    .chat-title-left { display: flex; align-items: center; gap: 10px; }
+    .menu-toggle { font-size: 1.3rem; cursor: pointer; background: transparent; border: none; color: #0d6efd; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.9); }
+    .message-wrapper { display: flex; align-items: flex-start; gap: 10px; max-width: 80%; flex-direction: column; }
+    .message-wrapper.user { align-self: flex-end; align-items: flex-end; }
+    .icon-wrapper { font-size: 1.5rem; color: #0d6efd; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.9); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .message { padding: 10px 15px; border-radius: 10px; font-size: 0.95rem; max-width: 100%; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); position: relative; }
+    .message.user { color: white; border-bottom-right-radius: 0; background: #667db6; background: -webkit-linear-gradient(to right, #667db6, #0082c8, #0082c8, #667db6); background: linear-gradient(to right, #667db6, #0082c8, #0082c8, #667db6); }
+    .message.bot { color: #212529; border-bottom-left-radius: 0; background: #ffb0fa; background: linear-gradient(90deg, rgba(255,176,250,1) 17%, rgba(255,161,161,1) 100%, rgba(237,221,83,1) 96%); }
+    .msg-footer { display: flex; gap: 12px; margin-top: 5px; font-size: 1rem; cursor: pointer; }
+    .msg-footer.user-icons i { color: #f8f9fa; }
+    .msg-footer.bot-icons i { color: #6c757d; }
+    .msg-footer i:hover { color: #0d6efd; }
+    .chat-footer { background: rgba(248,249,250,0.95); padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-input-container { display: flex; align-items: center; border-radius: 30px; background: #fff; padding: 5px 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+    .chat-input-container textarea { border: none; flex: 1; resize: none; height: 45px; outline: none; padding: 10px; border-radius: 20px; }
+    .chat-input-container .send-btn-icon, .chat-input-container .mic-btn-icon { font-size: 1.3rem; color: #0d6efd; margin: 0 8px; cursor: pointer; }
+    .icon-actions { display: flex; justify-content: space-around; padding: 5px; }
+    .icon-actions i { font-size: 1.4rem; color: #0d6efd; cursor: pointer; transition: color 0.2s; }
+    .icon-actions i:hover { color: #084298; }
+  </style>
+</head>
+<body>
+  <header>Local LLM Chat</header>
+  <div class="main-container">
+    <div class="history-panel" id="historyPanel">
+      <div class="create-new" id="createNew"><i class="fas fa-plus"></i></div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+    <div class="chat-section">
+      <div class="chat-header">
+        <div class="chat-title-left"><button class="menu-toggle" id="menuToggle">&#9776;</button><div id="chatTitle">Chat Session</div></div>
+        <select id="modelSelect" class="form-select form-select-sm" style="width: auto;"><option value="gpt-3.5">GPT-3.5</option><option value="gpt-4">GPT-4</option><option value="local-llm" selected>Local LLM</option></select>
+      </div>
+      <div id="chatMessages" class="chat-messages">
+        <div class="message-wrapper user">
+          <div class="icon-wrapper"><i class="fas fa-user"></i></div>
+          <div class="message user">Hi there! How are you?<div class="msg-footer user-icons"><i class="fas fa-copy"></i><i class="fas fa-pen"></i></div></div>
+        </div>
+        <div class="message-wrapper bot">
+          <div class="icon-wrapper"><i class="fas fa-robot"></i></div>
+          <div class="message bot">Hello! I'm doing great, thank you. How can I help you today?<div class="msg-footer bot-icons"><i class="fas fa-copy"></i><i class="fas fa-thumbs-up"></i><i class="fas fa-thumbs-down"></i><i class="fas fa-volume-up"></i><i class="fas fa-sync"></i></div></div>
+        </div>
+      </div>
+      <div class="chat-footer">
+        <div class="chat-input-container"><i class="fas fa-microphone mic-btn-icon" id="micBtn"></i><textarea id="userInput" placeholder="Type your message..."></textarea><i class="fas fa-paper-plane send-btn-icon" id="sendBtn"></i></div>
+        <div class="icon-actions"><i class="fas fa-plus"></i><i class="fas fa-tools"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sendBtn = document.getElementById('sendBtn');
+    const userInput = document.getElementById('userInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const historyList = document.getElementById('historyList');
+    const createNew = document.getElementById('createNew');
+    const menuToggle = document.getElementById('menuToggle');
+    const historyPanel = document.getElementById('historyPanel');
+
+    menuToggle.addEventListener('click', () => { historyPanel.classList.toggle('hidden'); });
+
+    const dummySessions = [ { id: 1, title: 'Chat about AI', date: '2025-08-01 21:15' }, { id: 2, title: 'Project Discussion', date: '2025-07-31 19:45' }, { id: 3, title: 'General Questions', date: '2025-07-30 14:10' } ];
+
+    function renderSessions() { historyList.innerHTML = ''; dummySessions.sort((a,b) => b.id - a.id); dummySessions.forEach(s => { const div = document.createElement('div'); div.classList.add('history-item'); div.innerHTML = `<i class="fas fa-comments"></i><div class="text-section"><strong>${s.title}</strong><small>${s.date}</small></div>`; div.onclick = () => alert('Load session ' + s.title); historyList.appendChild(div); }); }
+
+    renderSessions();
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+    function sendMessage() { const message = userInput.value.trim(); if (!message) return; addMessage(message, 'user'); userInput.value = ''; setTimeout(() => { addMessage('This is a dummy GPT response.', 'bot'); }, 500); }
+
+    function addMessage(text, sender) {
+      const wrapper = document.createElement('div'); wrapper.classList.add('message-wrapper', sender);
+      const icon = document.createElement('div'); icon.classList.add('icon-wrapper'); icon.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+      let footerIcons = sender === 'user' ? '<div class="msg-footer user-icons"><i class="fas fa-copy"></i><i class="fas fa-pen"></i></div>' : '<div class="msg-footer bot-icons"><i class="fas fa-copy"></i><i class="fas fa-thumbs-up"></i><i class="fas fa-thumbs-down"></i><i class="fas fa-volume-up"></i><i class="fas fa-sync"></i></div>';
+      const msg = document.createElement('div'); msg.classList.add('message', sender); msg.innerHTML = `${text}${footerIcons}`;
+      wrapper.appendChild(icon); wrapper.appendChild(msg); chatMessages.appendChild(wrapper); chatMessages.scrollTop = chatMessages.scrollHeight; }
+
+    createNew.addEventListener('click', () => { alert('Create a new chat session'); });
+  </script>
+</body>
+</html>
